@@ -35,7 +35,8 @@
           <input class="w3-input"  type="password" id="reg-password" placeholder="password"/><br>
           <input class="w3-input" type="text" id="reg-email" placeholder="email"/><br>
           <input class="w3-input" type="text" id="reg-name" placeholder="name"/><br>
-          <button class="w3-btn w3-black" onclick="createCredential()">Register with Authenticator</button> 
+          <input class="w3-input" type="text" id="reg-phone" placeholder="phone"/><br>
+          <button class="w3-btn w3-black" id="create-credential">Register with Authenticator</button> 
         </div>
         <div id="tabs-2">
           <input class="w3-input" type="text" id="login-username" placeholder="username"/><br>
@@ -44,7 +45,7 @@
           <input class="w3-radio" type="radio" name="authentication" value="both" checked><label> Login with Password + FIDO</label><br>
           <input class="w3-radio" type="radio" name="authentication" value="password"><label> Login with Password Only</label><br>
           <input  class="w3-radio" type="radio" name="authentication" value="fido"><label> Password-less (FIDO only)</label><br><br>
-          <button class="w3-btn w3-black" onclick="signIn()">Login</button> 
+          <button class="w3-btn w3-black" id="sign-in">Login</button> 
         </div>
       </div>
       <br><br>

@@ -18,8 +18,8 @@
   let globalRegisteredCredentialsJSON = {};
   
   let poolData = {
-    UserPoolId: 'user-pool-id', // Your user pool id here
-    ClientId: 'client-id' //Your app client id here
+    UserPoolId: '', // Your user pool id here
+    ClientId: '' //Your app client id here
     
   };
   let userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData);
@@ -30,49 +30,52 @@
       try {
         
           //build the credentials options requirements
-          var credOptionsRequest = {
-            attestation: 'none',
-            username: $("#reg-username").val() ,
-            name: $("#reg-username").val(),
-            authenticatorSelection: {
-              authenticatorAttachment: ['platform','cross-platform'],
-              userVerification: 'preferred',
-              requireResidentKey: false
-            }
-          };
+          // var credOptionsRequest = {
+          //   attestation: 'none',
+          //   username: $("#reg-username").val() ,
+          //   name: $("#reg-username").val(),
+          //   authenticatorSelection: {
+          //     authenticatorAttachment: ['platform','cross-platform'],
+          //     userVerification: 'discouraged',
+          //     requireResidentKey: false
+          //   }
+          // };
           
-          //generate credentials request to be sent to navigator.credentials.create
-          var credOptions = await _fetch('/authn/createCredRequest' , credOptionsRequest);
-          var challenge = credOptions.challenge;
-          credOptions.user.id = base64url.decode(credOptions.user.id);
-          credOptions.challenge = base64url.decode(credOptions.challenge);
+          // //generate credentials request to be sent to navigator.credentials.create
+          // var credOptions = await _fetch('/authn/createCredRequest' , credOptionsRequest);
+          // var challenge = credOptions.challenge;
+          // credOptions.user.id = base64url.decode(credOptions.user.id);
+          // credOptions.challenge = base64url.decode(credOptions.challenge);
+          // if (/localhost/.test(credOptions.rp.id)) {
+          //   credOptions.rp.id = 'localhost'
+          // }
           
-          //----------create credentials using available authenticator
-          const cred = await navigator.credentials.create({
-              publicKey: credOptions
-          });
+          // //----------create credentials using available authenticator
+          // const cred = await navigator.credentials.create({
+          //     publicKey: credOptions
+          // });
           
-          // parse credentials response to extract id and public-key, this is the information needed to register the user in Cognito
-          const credential = {};
-          credential.id =     cred.id;
-          credential.rawId =  base64url.encode(cred.rawId);
-          credential.type =   cred.type;
-          credential.challenge = challenge;
+          // // parse credentials response to extract id and public-key, this is the information needed to register the user in Cognito
+          // const credential = {};
+          // credential.id =     cred.id;
+          // credential.rawId =  base64url.encode(cred.rawId);
+          // credential.type =   cred.type;
+          // credential.challenge = challenge;
           
-          if (cred.response) {
-            const clientDataJSON = base64url.encode(cred.response.clientDataJSON);
-            const attestationObject = base64url.encode(cred.response.attestationObject);
-            credential.response = {
-              clientDataJSON,
-              attestationObject
-            };
-          }
+          // if (cred.response) {
+          //   const clientDataJSON = base64url.encode(cred.response.clientDataJSON);
+          //   const attestationObject = base64url.encode(cred.response.attestationObject);
+          //   credential.response = {
+          //     clientDataJSON,
+          //     attestationObject
+          //   };
+          // }
           
-          credResponse = await _fetch('/authn/parseCredResponse' , credential);
+          // credResponse = await _fetch('/authn/parseCredResponse' , credential);
           
-          globalRegisteredCredentialsJSON = {id: credResponse.credId,publicKey: credResponse.publicKey};
-          globalRegisteredCredentials = JSON.stringify(globalRegisteredCredentialsJSON);
-          console.log(globalRegisteredCredentials);
+          // globalRegisteredCredentialsJSON = {id: credResponse.credId,publicKey: credResponse.publicKey};
+          // globalRegisteredCredentials = JSON.stringify(globalRegisteredCredentialsJSON);
+          // console.log(globalRegisteredCredentials);
           
           //----------credentials have been created, now sign-up the user in Cognito
           signUp();
@@ -87,21 +90,25 @@
       var username = $("#reg-username").val();
       var password =$("#reg-password").val();
       var name = $("#reg-name").val();
+      var phoneNumber = $("#reg-phone").val();
       var publicKeyCred = btoa(globalRegisteredCredentials);//base64 encode credentials json string (credId, public-key)
       
       var attributeList = [];
   
       var dataEmail = {Name: 'email',Value: email};
       var dataName = { Name: 'name',Value: name};
-      var dataPublicKeyCred = { Name: 'custom:publicKeyCred',Value: publicKeyCred};
+      var dataPhone = { Name: 'phone_number', Value: phoneNumber };
+      var dataFirstAccess = { Name: 'custom:firstAccess',Value: '1'};
       
       var attributeEmail = new AmazonCognitoIdentity.CognitoUserAttribute(dataEmail);
-      var attributePublicKeyCred = new AmazonCognitoIdentity.CognitoUserAttribute(dataPublicKeyCred);
       var attributeName = new AmazonCognitoIdentity.CognitoUserAttribute(dataName);
+      var attributePhone = new AmazonCognitoIdentity.CognitoUserAttribute(dataPhone);
+      var attributeFirstAccess = new AmazonCognitoIdentity.CognitoUserAttribute(dataFirstAccess);
   
       attributeList.push(attributeEmail);
-      attributeList.push(attributePublicKeyCred);
       attributeList.push(attributeName);
+      attributeList.push(attributePhone);
+      attributeList.push(attributeFirstAccess);
       
       userPool.signUp(username, password, attributeList, null, function(err, result ) {
         if (err) {
@@ -269,3 +276,10 @@
       var base64 = base64Url.replace('-', '+').replace('_', '/');
       return JSON.parse(window.atob(base64));
   };
+
+  window.onload = () => {
+    const createCredentialButton = document.querySelector('#create-credential');
+    createCredentialButton.addEventListener('click', createCredential);
+    const signInButton = document.querySelector('#sign-in');
+    signInButton.addEventListener('click', signIn);
+  }
